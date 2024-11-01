@@ -115,7 +115,43 @@ function MainPage() {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-      setTasks(response.data);
+      const sortedTasks = response.data.sort((a, b) => a.id - b.id);
+      setTasks(sortedTasks);
+      setEditingTaskId(null);
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  };
+
+  const toggleStatus = async (taskId: number) => {
+    try {
+      const currentTask = await axios.get<Task>(
+        `http://localhost:8000/api/tasks/${taskId}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+
+      const currentStatus =
+        currentTask.data.status === "active" ? "completed" : "active";
+      const updatedTask = {
+        task_name: currentTask.data.task_name,
+        status: currentStatus,
+      };
+
+      await axios.put(`http://localhost:8000/api/task/${taskId}`, updatedTask, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      const response = await axios.get<Task[]>(
+        `http://localhost:8000/api/tasks`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+
+      const sortedTasks = response.data.sort((a, b) => a.id - b.id);
+      setTasks(sortedTasks);
       setEditingTaskId(null);
     } catch (error) {
       console.error("Error updating task:", error);
@@ -131,7 +167,8 @@ function MainPage() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setTasks(response.data);
+      const sortedTasks = response.data.sort((a, b) => a.id - b.id);
+      setTasks(sortedTasks);
     } catch (error) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
@@ -160,7 +197,7 @@ function MainPage() {
             />
             <button
               onClick={createTask}
-              className="px-2 py-3 my-2 bg-blue-950 text-white rounded-lg font-bold"
+              className="px-2 py-3 my-2 bg-blue-900 hover:bg-blue-950 text-white rounded-lg font-bold"
             >
               Create Task
             </button>
@@ -204,13 +241,13 @@ function MainPage() {
                         </select>
                         <button
                           onClick={() => updateTask(task.id)}
-                          className="p-2 bg-green-950 text-white rounded-lg font-bold"
+                          className="p-2 bg-green-900 hover:bg-green-950 text-white rounded-lg font-bold"
                         >
                           Save
                         </button>
                         <button
                           onClick={cancelEdit}
-                          className="p-2 bg-red-950 text-white rounded-lg font-bold"
+                          className="p-2 bg-red-900 hover:bg-red-950 text-white rounded-lg font-bold"
                         >
                           Cancel
                         </button>
@@ -233,14 +270,32 @@ function MainPage() {
                         </p>
                       </div>
                       <div className="grid gap-2 my-2">
+                        <div className="grid gap-2 grid-cols-2">
+                          <button
+                            className="p-2 bg-blue-900 hover:bg-blue-950 text-white rounded-lg font-bold"
+                            onClick={() => startEdit(task)}
+                          >
+                            Edit
+                          </button>
+                          {task.status === "active" && (
+                            <button
+                              className="p-2 bg-green-700 hover:bg-green-800 text-white rounded-lg font-bold"
+                              onClick={() => toggleStatus(task.id)}
+                            >
+                              Mark as completed
+                            </button>
+                          )}
+                          {task.status === "completed" && (
+                            <button
+                              className="p-2 bg-red-700 hover:bg-red-800 text-white rounded-lg font-bold"
+                              onClick={() => toggleStatus(task.id)}
+                            >
+                              Mark as active
+                            </button>
+                          )}
+                        </div>
                         <button
-                          className="p-2 bg-blue-950 text-white rounded-lg font-bold"
-                          onClick={() => startEdit(task)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="p-2 bg-red-950 text-white rounded-lg font-bold"
+                          className="p-2 bg-red-900 hover:bg-red-950 text-white rounded-lg font-bold"
                           onClick={() => deleteTask(task.id)}
                         >
                           Delete
