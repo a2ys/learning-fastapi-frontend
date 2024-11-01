@@ -67,7 +67,10 @@ function MainPage() {
     try {
       const response = await axios.post<Task>(
         "http://localhost:8000/api/task",
-        newTask
+        newTask,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
       );
       console.log("Task created:", response.data);
       setNewTaskName("");
@@ -81,7 +84,10 @@ function MainPage() {
   const deleteTask = async (taskId: number) => {
     try {
       const response = await axios.delete<Task>(
-        `http://localhost:8000/api/task/${taskId}`
+        `http://localhost:8000/api/task/${taskId}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
       );
       setTasks(
         (prevTasks) => prevTasks?.filter((task) => task.id !== taskId) || []
@@ -100,7 +106,9 @@ function MainPage() {
     };
 
     try {
-      await axios.put(`http://localhost:8000/api/task/${taskId}`, updatedTask);
+      await axios.put(`http://localhost:8000/api/task/${taskId}`, updatedTask, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
       const response = await axios.get<Task[]>(
         `http://localhost:8000/api/tasks`,
         {
